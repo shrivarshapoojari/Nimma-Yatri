@@ -14,6 +14,7 @@ module.exports.getAddressCoordinate = async (address) => {
                 lng: location.lng
             };
         } else {
+            console.log(response.data);
             throw new Error('Unable to fetch coordinates');
         }
     } catch (error) {
@@ -22,35 +23,94 @@ module.exports.getAddressCoordinate = async (address) => {
     }
 }
 
+// module.exports.getDistanceTime = async (origin, destination) => {
+//     if (!origin || !destination) {
+//         throw new Error('Origin and destination are required');
+//     }
+
+//     const apiKey = process.env.GOOGLE_MAPS_API;
+
+//     const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`;
+
+//     try {
+
+
+//         const response = await axios.get(url);
+//         if (response.data.status === 'OK') {
+
+//             if (response.data.rows[ 0 ].elements[ 0 ].status === 'ZERO_RESULTS') {
+//                 throw new Error('No routes found');
+//             }
+
+//             return response.data.rows[ 0 ].elements[ 0 ];
+//         } else {
+//             console.log(response.data);
+//             throw new Error('Unable to fetch distance and time');
+//         }
+
+//     } catch (err) {
+//         console.error(err);
+//         throw err;
+//     }
+// }
+
+
 module.exports.getDistanceTime = async (origin, destination) => {
     if (!origin || !destination) {
-        throw new Error('Origin and destination are required');
+        throw new Error("Origin and destination are required");
     }
+    console.log("Origin:", origin);
 
     const apiKey = process.env.GOOGLE_MAPS_API;
+    const url = "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix";
 
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`;
+    // Google Routes API expects "origins" and "destinations" as objects with lat/lng
+    const requestBody = {
+        origins: [
+            {
+                waypoint: {
+                    location: { latLng: { latitude: 12.9289709 , longitude: 77.5045989 } }
+                },
+                routeModifiers: { avoid_ferries: true }
+            }
+        ],
+        destinations: [
+            {
+                waypoint: {
+                    location: { latLng: { latitude: 12.9489809, longitude:77.5045989  } }
+                }
+            }
+        ],
+        travelMode: "DRIVE",
+        routingPreference: "TRAFFIC_AWARE"
+    };
+ 
 
     try {
-
-
-        const response = await axios.get(url);
-        if (response.data.status === 'OK') {
-
-            if (response.data.rows[ 0 ].elements[ 0 ].status === 'ZERO_RESULTS') {
-                throw new Error('No routes found');
+        const response = await axios.post(url, requestBody, {
+            headers: {
+                "Content-Type": "application/json",
+                "X-Goog-Api-Key": apiKey,
+                "X-Goog-FieldMask": "originIndex,destinationIndex,duration,distanceMeters,status,condition"
             }
+        });
 
-            return response.data.rows[ 0 ].elements[ 0 ];
+ 
+
+        if (response.data.length > 0) {
+            // console.log("Response:", response.data);
+            return {
+                duration: response.data[0].duration,
+                distance: response.data[0].distanceMeters
+            };
         } else {
-            throw new Error('Unable to fetch distance and time');
+            throw new Error("No routes found");
         }
-
     } catch (err) {
-        console.error(err);
-        throw err;
+        console.error("API Error:", err.response ? err.response.data : err.message);
+        throw new Error("Unable to fetch distance and time");
     }
-}
+};
 
 module.exports.getAutoCompleteSuggestions = async (input) => {
     if (!input) {

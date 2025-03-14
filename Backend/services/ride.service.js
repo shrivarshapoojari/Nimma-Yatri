@@ -4,12 +4,21 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
 async function getFare(pickup, destination) {
+            
 
+    console.log(pickup, destination);
     if (!pickup || !destination) {
         throw new Error('Pickup and destination are required');
     }
 
     const distanceTime = await mapService.getDistanceTime(pickup, destination);
+            
+    console.log("distanceTime is ",distanceTime);
+    
+    console.log("distanceTime.distance is ",distanceTime.distance);
+    console.log("distanceTime.duration is ",distanceTime.duration);
+    const distance = distanceTime.distance; // Already a number
+const duration = parseInt(distanceTime.duration); // Extract numeric part
 
     const baseFare = {
         auto: 30,
@@ -32,11 +41,11 @@ async function getFare(pickup, destination) {
 
 
     const fare = {
-        auto: Math.round(baseFare.auto + ((distanceTime.distance.value / 1000) * perKmRate.auto) + ((distanceTime.duration.value / 60) * perMinuteRate.auto)),
-        car: Math.round(baseFare.car + ((distanceTime.distance.value / 1000) * perKmRate.car) + ((distanceTime.duration.value / 60) * perMinuteRate.car)),
-        moto: Math.round(baseFare.moto + ((distanceTime.distance.value / 1000) * perKmRate.moto) + ((distanceTime.duration.value / 60) * perMinuteRate.moto))
+        auto: Math.round(baseFare.auto + ((distance/ 1000) * perKmRate.auto) + ((duration / 60) * perMinuteRate.auto)),
+        car: Math.round(baseFare.car + ((distance / 1000) * perKmRate.car) + ((duration / 60) * perMinuteRate.car)),
+        moto: Math.round(baseFare.moto + ((distance / 1000) * perKmRate.moto) + ((duration/ 60) * perMinuteRate.moto))
     };
-
+  console.log("fare is ",fare);
     return fare;
 
 
