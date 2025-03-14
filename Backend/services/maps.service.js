@@ -60,7 +60,15 @@ module.exports.getDistanceTime = async (origin, destination) => {
         throw new Error("Origin and destination are required");
     }
     console.log("Origin:", origin);
+   
 
+      const source= await this.getAddressCoordinate(origin);
+      const dest= await this.getAddressCoordinate(destination);
+    
+      const sourcelat=source.ltd;
+        const sourcelng=source.lng;
+        const destlat=dest.ltd;
+        const destlng=dest.lng;
     const apiKey = process.env.GOOGLE_MAPS_API;
     const url = "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix";
 
@@ -69,7 +77,7 @@ module.exports.getDistanceTime = async (origin, destination) => {
         origins: [
             {
                 waypoint: {
-                    location: { latLng: { latitude: 12.9289709 , longitude: 77.5045989 } }
+                    location: { latLng: { latitude: sourcelat, longitude:sourcelng } }
                 },
                 routeModifiers: { avoid_ferries: true }
             }
@@ -77,7 +85,7 @@ module.exports.getDistanceTime = async (origin, destination) => {
         destinations: [
             {
                 waypoint: {
-                    location: { latLng: { latitude: 12.9489809, longitude:77.5045989  } }
+                    location: { latLng: { latitude: destlat, longitude:destlng  } }
                 }
             }
         ],
