@@ -39,6 +39,8 @@ router.post('/end-ride',
     rideController.endRide
 )
 
+router.get('/getrides', rideController.getAllRides);
+
 
 
 module.exports = router;

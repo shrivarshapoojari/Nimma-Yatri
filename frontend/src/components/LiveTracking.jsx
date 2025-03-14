@@ -1,66 +1,54 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { LoadScript, GoogleMap, Marker } from '@react-google-maps/api'
 
 const containerStyle = {
     width: '100%',
-    height: '100%',
+    height: '500px', // Set full height for better visibility
 };
 
-const center = {
-    lat: -3.745,
-    lng: -38.523
+const defaultCenter = {
+    lat: 12.9716, 
+    lng: 77.5946 
 };
 
 const LiveTracking = () => {
-    const [ currentPosition, setCurrentPosition ] = useState(center);
+    const [location, setLocation] = useState(defaultCenter);
+    const mapRef = useRef(null);
 
     useEffect(() => {
-        navigator.geolocation.getCurrentPosition((position) => {
+        const updatePosition = (position) => {
             const { latitude, longitude } = position.coords;
-            setCurrentPosition({
+            setLocation({
                 lat: latitude,
                 lng: longitude
             });
-        });
 
-        const watchId = navigator.geolocation.watchPosition((position) => {
-            const { latitude, longitude } = position.coords;
-            setCurrentPosition({
-                lat: latitude,
-                lng: longitude
-            });
-        });
+            if (mapRef.current) {
+                mapRef.current.panTo({ lat: latitude, lng: longitude }); // Pan map to new location
+            }
+        };
+
+        navigator.geolocation.getCurrentPosition(updatePosition);
+        const watchId = navigator.geolocation.watchPosition(updatePosition);
 
         return () => navigator.geolocation.clearWatch(watchId);
     }, []);
 
-    useEffect(() => {
-        const updatePosition = () => {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const { latitude, longitude } = position.coords;
-
-                console.log('Position updated:', latitude, longitude);
-                setCurrentPosition({
-                    lat: latitude,
-                    lng: longitude
-                });
-            });
-        };
-
-        updatePosition(); // Initial position update
-
-        const intervalId = setInterval(updatePosition, 1000); // Update every 10 seconds
-
-    }, []);
-
     return (
-        <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+        <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API}>
             <GoogleMap
                 mapContainerStyle={containerStyle}
-                center={currentPosition}
+                center={location} // Update map center dynamically
                 zoom={15}
+                onLoad={(map) => (mapRef.current = map)}
+                options={{
+                    zoomControl: true,
+                    fullscreenControl: true,
+                    streetViewControl: true,
+                    mapTypeControl: false,
+                }}
             >
-                <Marker position={currentPosition} />
+                <Marker position={location} />
             </GoogleMap>
         </LoadScript>
     )

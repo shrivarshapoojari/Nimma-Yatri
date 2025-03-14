@@ -34,6 +34,7 @@ const Home = () => {
     const [ fare, setFare ] = useState({})
     const [ vehicleType, setVehicleType ] = useState(null)
     const [ ride, setRide ] = useState(null)
+    const key = import.meta.env.VITE_GOOGLE_MAPS_API
 
     const navigate = useNavigate()
 

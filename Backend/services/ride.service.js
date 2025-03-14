@@ -168,3 +168,46 @@ module.exports.endRide = async ({ rideId, captain }) => {
     return ride;
 }
 
+
+
+
+async function findLongestNavigablePathByVehicle(pairs, vehicleType) {
+    if (!Array.isArray(pairs)) {
+        throw new Error("Invalid input: 'pairs' should be an array.");
+    }
+
+    let graph = new Map();
+    let inDegree = new Map();
+    let startingPoints = new Set();
+
+    for (let { pickup, destination, vehicleType: type } of pairs) {
+        if (type !== vehicleType) continue; // Ignore different vehicle types
+
+        if (!graph.has(pickup)) graph.set(pickup, []);
+        graph.get(pickup).push(destination);
+
+        inDegree.set(destination, (inDegree.get(destination) || 0) + 1);
+        if (!inDegree.has(pickup)) inDegree.set(pickup, 0);
+    }
+
+    let longestPath = [];
+
+    function dfs(node, path) {
+        if (!graph.has(node)) {
+            if (path.length > longestPath.length) longestPath = [...path];
+            return;
+        }
+        for (let nextNode of graph.get(node)) {
+            dfs(nextNode, [...path, nextNode]);
+        }
+    }
+
+    for (let pickup of inDegree.keys()) {
+        if (inDegree.get(pickup) === 0) dfs(pickup, [pickup]);
+    }
+
+    return longestPath;
+}
+
+
+module.exports.findLongestNavigablePathByVehicle = findLongestNavigablePathByVehicle;
