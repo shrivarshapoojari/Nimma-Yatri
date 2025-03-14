@@ -1,6 +1,37 @@
 import React from 'react'
-
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 const RidePopUp = (props) => {
+    const [isWaiting, setIsWaiting] = useState(false);
+        const [addedtoQueue, setAddedtoQueue] = useState(false);
+const handleWait=async()=>{
+    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/rides/wait`, {
+        rideId: props.ride._id,
+        captainId: props.captain._id
+    }, {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+    })
+    console.log(response)
+    if(response.status===200){
+        setAddedtoQueue(true)
+        props.setRidePopupPanel(false)
+    }
+    
+
+}
+
+    useEffect(() => {
+        // Listen for the 'ride-taken' event
+        props.socket.on('ride-taken', () => {
+            setIsWaiting(true);
+        });
+
+        // return () => {
+        //     props.socket.off('ride-taken');
+        // };
+    }, [props.socket]);
     return (
         <div>
             <h5 className='p-1 text-center w-[93%] absolute top-0' onClick={() => {
@@ -39,18 +70,24 @@ const RidePopUp = (props) => {
                     </div>
                 </div>
                 <div className='mt-5 w-full '>
-                    <button onClick={() => {
+                 { !isWaiting  ?<button onClick={() => {
                         props.setConfirmRidePopupPanel(true)
                         props.confirmRide()
 
                     }} className=' bg-green-600 w-full text-white font-semibold p-2 px-10 rounded-lg'>Accept</button>
 
-                    <button onClick={() => {
+                    : <button className='  bg-green-600 w-full text-white font-semibold p-2 px-10 rounded-lg'
+                      onClick={handleWait}
+                      disabled={addedtoQueue}
+                    >{!addedtoQueue?"Wait":"Added to queue"}</button>
+                }
+                  
+                  {   !addedtoQueue && <button onClick={() => {
                         props.setRidePopupPanel(false)
 
                     }} className='mt-2 w-full bg-gray-300 text-gray-700 font-semibold p-2 px-10 rounded-lg'>Ignore</button>
 
-
+                }
                 </div>
             </div>
         </div>

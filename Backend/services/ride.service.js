@@ -216,25 +216,60 @@ module.exports.createRide = async ({ user, pickup, destination, vehicleType }) =
     return ride;
 };
 
-module.exports.confirmRide = async ({ rideId, captain }) => {
+// module.exports.confirmRide = async ({ rideId, captain }) => {
+//     if (!rideId) {
+//         throw new Error('Ride ID is required');
+//     }
+
+//     let ride = await rideModel.findOne({ _id: rideId });
+//     if (!ride) {
+//         throw new Error('Ride not found');
+//     }
+
+//     if (ride.status !== 'waiting') {
+//         const queue = rideQueues.get(rideId.toString());
+//         if (queue) queue.push(captain._id);
+//         return ride;
+//     }
+
+//     await rideModel.findOneAndUpdate({ _id: rideId }, { status: 'accepted', captain: captain._id });
+//     return await rideModel.findOne({ _id: rideId }).populate('user').populate('captain').select('+otp');
+// };
+
+
+
+
+
+
+
+
+
+module.exports.confirmRide = async ({
+    rideId, captain
+}) => {
     if (!rideId) {
-        throw new Error('Ride ID is required');
+        throw new Error('Ride id is required');
     }
 
-    let ride = await rideModel.findOne({ _id: rideId });
+    await rideModel.findOneAndUpdate({
+        _id: rideId
+    }, {
+        status: 'accepted',
+        captain: captain._id
+    })
+
+    const ride = await rideModel.findOne({
+        _id: rideId
+    }).populate('user').populate('captain').select('+otp');
+
     if (!ride) {
         throw new Error('Ride not found');
     }
 
-    if (ride.status !== 'waiting') {
-        const queue = rideQueues.get(rideId.toString());
-        if (queue) queue.push(captain._id);
-        return ride;
-    }
+    return ride;
 
-    await rideModel.findOneAndUpdate({ _id: rideId }, { status: 'accepted', captain: captain._id });
-    return await rideModel.findOne({ _id: rideId }).populate('user').populate('captain').select('+otp');
-};
+}
+
 
 // module.exports.cancelRide = async ({ rideId, captain }) => {
 //     if (!rideId) {
@@ -260,33 +295,35 @@ module.exports.confirmRide = async ({ rideId, captain }) => {
 
 
 
-module.exports.cancelRide = async ({ rideId, captain }) => {
-    if (!rideId) {
-        throw new Error('Ride ID is required');
-    }
+// module.exports.cancelRide = async ({ rideId, captain }) => {
+//     if (!rideId) {
+//         throw new Error('Ride ID is required');
+//     }
 
-    let ride = await rideModel.findOne({ _id: rideId });
-    if (!ride) {
-        throw new Error('Ride not found');
-    }
+//     let ride = await rideModel.findOne({ _id: rideId });
+    
+//     if (!ride) {
+//         throw new Error('Ride not found');
+//     }
 
-    if (ride.status === 'completed' || ride.status === 'cancelled') {
-        throw new Error('Cannot cancel a completed or already cancelled ride');
-    }
+//     if (ride.status === 'completed' || ride.status === 'cancelled') {
+//         throw new Error('Cannot cancel a completed or already cancelled ride');
+//     }
 
-    if (ride.captain && ride.captain.toString() === captain._id.toString()) {
-        const queue = rideQueues.get(rideId.toString());
-        if (queue && queue.length > 0) {
-            const nextCaptainId = queue.shift();
-            await rideModel.findOneAndUpdate({ _id: rideId }, { captain: nextCaptainId });
-        } else {
-            await rideModel.findOneAndUpdate({ _id: rideId }, { status: 'waiting', captain: null });
-        }
-    } else {
-        await rideModel.findOneAndUpdate({ _id: rideId }, { status: 'cancelled' });
-        rideQueues.delete(rideId.toString());
-    }
-};
+//     if (ride.captain && ride.captain.toString() === captain._id.toString()) {
+//         const queue = rideQueues.get(rideId.toString());
+//         if (queue && queue.length > 0) {
+//             const nextCaptainId = queue.shift();
+//             await rideModel.findOneAndUpdate({ _id: rideId }, { captain: nextCaptainId });
+//         } else {
+//             await rideModel.findOneAndUpdate({ _id: rideId }, { status: 'waiting', captain: null });
+//         }
+//     } else {
+//         await rideModel.findOneAndUpdate({ _id: rideId }, { status: 'cancelled' });
+//         rideQueues.delete(rideId.toString());
+//     }
+//     return ride;
+// };
 
 module.exports.startRide = async ({ rideId, otp, captain }) => {
     const ride = await rideModel.findOne({ _id: rideId }).populate('user').populate('captain').select('+otp');

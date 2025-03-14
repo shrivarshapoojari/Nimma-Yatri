@@ -6,7 +6,21 @@ import { useNavigate } from 'react-router-dom'
 const ConfirmRidePopUp = (props) => {
     const [ otp, setOtp ] = useState('')
     const navigate = useNavigate()
-
+  
+    const handleCancelRide = async () => {
+      
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/rides/cancel`, {
+            rideId: props.ride._id
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        
+        console.log(response)
+        props.setConfirmRidePopupPanel(false)
+        props.setRidePopupPanel(false)
+    }
     const submitHander = async (e) => {
         e.preventDefault()
 
@@ -72,8 +86,9 @@ const ConfirmRidePopUp = (props) => {
 
                         <button className='w-full mt-5 text-lg flex justify-center bg-green-600 text-white font-semibold p-3 rounded-lg'>Confirm</button>
                         <button onClick={() => {
-                            props.setConfirmRidePopupPanel(false)
-                            props.setRidePopupPanel(false)
+
+                            handleCancelRide()
+                           
 
                         }} className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'>Cancel</button>
 

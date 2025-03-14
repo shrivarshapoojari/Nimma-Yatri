@@ -40,11 +40,15 @@ router.post('/end-ride',
 )
 
 
+router.post("/wait",authMiddleware.authCaptain,rideController.waitForRide)
+
 router.post('/cancel',
     authMiddleware.authCaptain,
     body('rideId').isMongoId().withMessage('Invalid ride id'),
     rideController.cancelRide
 );
+
+
 
 module.exports = router;
 

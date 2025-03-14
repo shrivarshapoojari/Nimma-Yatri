@@ -55,6 +55,17 @@ const CaptainHome = () => {
 
     })
 
+    socket.on('ride-taken', (data) => {
+        console.log("Another captain took the ride:", data);
+       
+    });
+
+    socket.on('que', (data) => {
+        console.log("Ride assigned to captain:", data);
+        setConfirmRidePopupPanel(true)
+        alert("Ride assigned from queue");
+    })
+
     async function confirmRide() {
 
         const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/rides/confirm`, {
@@ -120,6 +131,9 @@ const CaptainHome = () => {
                     setRidePopupPanel={setRidePopupPanel}
                     setConfirmRidePopupPanel={setConfirmRidePopupPanel}
                     confirmRide={confirmRide}
+                    socket={socket}
+                    captain={captain}
+                    
                 />
             </div>
             <div ref={confirmRidePopupPanelRef} className='fixed w-full h-screen z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>

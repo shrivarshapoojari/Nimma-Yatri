@@ -154,6 +154,11 @@
 
 
 
+
+const RideQueue = {}; // Object to store priority queues for each ride
+ 
+ const captainModel = require('../models/captain.model');
+
 const rideService = require('../services/ride.service');
 const { validationResult } = require('express-validator');
 const mapService = require('../services/maps.service');
@@ -208,6 +213,22 @@ module.exports.getFare = async (req, res) => {
     }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 module.exports.confirmRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -249,6 +270,50 @@ module.exports.confirmRide = async (req, res) => {
     } catch (err) {
         console.log(err);
         return res.status(500).json({ message: err.message });
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+module.exports.waitForRide = async (req, res) => {
+    try {
+        const { rideId, captainId } = req.body;
+
+        // Validate ride and captain
+        const ride = await rideModel.findById(rideId);
+        const captain = await captainModel.findById(captainId);
+
+        if (!ride) return res.status(404).json({ message: 'Ride not found' });
+        if (!captain) return res.status(404).json({ message: 'Captain not found' });
+
+        // Initialize queue for this ride if it doesn't exist
+        if (!RideQueue[rideId]) {
+            RideQueue[rideId] = [];
+        }
+
+        // Add captain to the queue with timestamp
+        RideQueue[rideId].push({ captainId, timestamp: Date.now() });
+
+        res.status(200).json({ message: 'Captain added to waiting queue', queuePosition: RideQueue[rideId].length });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -297,25 +362,79 @@ module.exports.endRide = async (req, res) => {
 };
 
 
-module.exports.cancelRide = async (req, res) => {
+// module.exports.cancelRide = async (req, res) => {
 
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//         return res.status(400).json({ errors: errors.array() });
+//     }
+
+//     const { rideId } = req.body;
+
+//     try {
+//         const ride = await rideService.cancelRide({ rideId, captain: req.captain });
+
+//         sendMessageToSocketId(ride.user.socketId, {
+//             event: 'ride-cancelled',
+//             data: ride
+//         });
+
+//         return res.status(200).json(ride);
+//     } catch (err) {
+//         return res.status(500).json({ message: err.message });
+//     }
+// }
+
+
+
+module.exports.cancelRide = async (req, res) => {
     const errors = validationResult(req);
+    console.log("in cancel ride")
+    console.log(req.body)
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
     const { rideId } = req.body;
 
+    console.log("rideId",rideId)
+    console.log("req.captain",req.captain)
+      
     try {
-        const ride = await rideService.cancelRide({ rideId, captain: req.captain });
+        
+        const ride=await rideModel.findOne({ _id: rideId });
+        
+ 
+       
 
-        sendMessageToSocketId(ride.user.socketId, {
-            event: 'ride-cancelled',
-            data: ride
-        });
+        // Check if there are captains waiting for this ride
+        if (RideQueue[rideId] && RideQueue[rideId].length > 0) {
+            const nextCaptain = RideQueue[rideId].shift(); // Get the first captain in queue
+
+            // Assign the ride to the new captain
+            ride.captain = nextCaptain.captainId;
+            const newCaptain=await captainModel.findById(nextCaptain.captainId)
+            await ride.save();
+
+           
+            sendMessageToSocketId(newCaptain.socketId, {
+                event: 'que',
+                data: ride
+            });
+            console.log("new driver assigned")
+        }
+        else
+        {
+            sendMessageToSocketId(ride.user.socketId, {
+                event: 'ride-cancelled',
+                data: ride
+            });
+
+        }
 
         return res.status(200).json(ride);
     } catch (err) {
+        console.log(err);
         return res.status(500).json({ message: err.message });
     }
-}
+};
