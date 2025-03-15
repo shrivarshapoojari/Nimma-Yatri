@@ -14,7 +14,8 @@ module.exports.getAddressCoordinate = async (address) => {
                 lng: location.lng
             };
         } else {
-            console.log(response.data);
+           
+            
             throw new Error('Unable to fetch coordinates');
         }
     } catch (error) {
@@ -59,7 +60,8 @@ module.exports.getDistanceTime = async (origin, destination) => {
     if (!origin || !destination) {
         throw new Error("Origin and destination are required");
     }
-    console.log("Origin:", origin);
+   
+    
    
 
       const source= await this.getAddressCoordinate(origin);
