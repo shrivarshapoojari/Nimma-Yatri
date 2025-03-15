@@ -24,12 +24,23 @@ const CaptainHome = () => {
     const ridePopupPanelRef = useRef(null)
     const confirmRidePopupPanelRef = useRef(null)
     const [ ride, setRide ] = useState(null)
+    const [prob,setProb]=useState(0)
     const[gain,setGain]=useState(0)
     const [location, setLocation] = useState(defaultCenter);
     const mapRef = useRef(null);
     const { socket } = useContext(SocketContext)
     const { captain } = useContext(CaptainDataContext)
+    
     const key = import.meta.env.VITE_GOOGLE_MAPS_API
+
+    const [ridePopupOpen, setRidePopupOpen] = useState(false);
+   
+    
+
+   
+
+
+
     useEffect(() => {
         socket.emit('join', {
             userId: captain._id,
@@ -76,6 +87,18 @@ const CaptainHome = () => {
         setConfirmRidePopupPanel(true)
         alert("Ride assigned from queue");
     })
+
+    
+
+    const getProbabilities = async()=>{
+        const response=await axios.get(`${import.meta.env.VITE_BASE_URL}/rides/probability`,{
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        console.log(response)
+        setProb(response.data)
+    }
 
     async function confirmRide() {
 
@@ -168,6 +191,10 @@ const CaptainHome = () => {
                     ride={ride}
                     setConfirmRidePopupPanel={setConfirmRidePopupPanel} setRidePopupPanel={setRidePopupPanel} />
             </div>
+
+            <div>
+            
+        </div>
         </div>
     )
 }

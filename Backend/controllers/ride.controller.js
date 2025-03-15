@@ -216,7 +216,7 @@ module.exports.createRide = async (req, res) => {
         const mlResponse = await axios.post("http://127.0.0.1:5000/predict", predictionData);
         console.log("mlResponse")
         console.log(mlResponse.data)
-        const difficultyScore = mlResponse.data.predicted_difficulty_score;
+        let difficultyScore = mlResponse.data.predicted_difficulty_score;
         console.log("Difficulty score:", difficultyScore);
         
         if(!difficultyScore) {
@@ -725,3 +725,51 @@ module.exports.endRide = async (req, res) => {
     }
 };
  
+const getCaptainRideQueue = async (captainId) => {
+    try {
+        
+
+        for (const rideId in RideQueue) {
+            const queue = RideQueue[rideId];
+
+            if (queue.toArray().some(entry => entry.captainId === captainId)) {
+                return res.status(200).json({ rideId });
+            }
+        }
+
+        res.status(404).json({ message: 'Captain not found in any queue' });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+module.exports.getProbability=async(req,res,next)=>{
+
+
+    // const captain=req.captain;
+    // console.log(captain)
+    // const captainId=captain._id;
+    // console.log("captainId",captainId)
+    // const rideId=getCaptainRideQueue(captainId);
+    // console.log("rideId",rideId)
+    // data = {
+    //     "fare_amount": 1,
+    //     "trip_duration": 10000,
+    //     "trip_distance": 10,
+    //     "pickup_hour": 14,
+    //     "day_of_week": 2,
+    //     "weather_condition": "Clear",
+    //     "payment_type": "Card",
+    //     "driver_rating": 1
+    // }
+
+    //   const mlResponse = await axios.post("http://127.0.0.1:5000/predict", predictionData);
+    //         console.log("mlResponse")
+    //         console.log(mlResponse.data)
+
+
+
+}

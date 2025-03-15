@@ -26,6 +26,9 @@ router.post('/confirm',
     rideController.confirmRide
 )
 
+router.get('/probability',
+    authMiddleware.authCaptain,rideController.getProbability)
+
 router.get('/start-ride',
     authMiddleware.authCaptain,
     query('rideId').isMongoId().withMessage('Invalid ride id'),

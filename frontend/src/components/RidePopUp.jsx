@@ -210,12 +210,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import GreedyPopup from './GreedyPopup';
 import { useNavigate } from 'react-router-dom';
+import RideMap from '../pages/RideMap';
 
 const RidePopUp = (props) => {
     const [isGreedyPopupOpen, setIsGreedyPopupOpen] = useState(false); 
     const [isWaiting, setIsWaiting] = useState(false);
     const [addedtoQueue, setAddedtoQueue] = useState(false);
     const [animatedAura, setAnimatedAura] = useState(props.gain);
+    const [gainPopUp, setGainPopUp] = useState(false);
 const navigate=useNavigate();
     useEffect(() => {
         // Smooth animation effect for aura points
@@ -240,6 +242,19 @@ const navigate=useNavigate();
             props.setRidePopupPanel(false);
         }
     };
+const handleExpectgain=()=>{
+    console.log("clicked")
+     setIsGreedyPopupOpen(true)
+}
+ 
+    const getProbabilities = async()=>{
+        const response=await axios.get(`${import.meta.env.VITE_BASE_URL}/rides/probability`,{
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        console.log(response)
+    }
 
     useEffect(() => {
         props.socket.on('ride-taken', () => {
@@ -305,7 +320,7 @@ const navigate=useNavigate();
             <div className='mt-5 w-full'>
                 {/* Expect Gain Button */}
                 <button 
-                    onClick={()=>navigate("/earn")}
+                    onClick={handleExpectgain}
                     className="mt-3 ml-auto mb-5 text-lg flex justify-center bg-blue-600 text-white font-semibold p-3 rounded-lg w-fit relative"
                 >
                     Expect Gain
@@ -343,8 +358,8 @@ const navigate=useNavigate();
                 )}
             </div>
 
-            {/* GreedyPopup */}
-            <GreedyPopup isOpen={isGreedyPopupOpen} onClose={() => setIsGreedyPopupOpen(false)} />
+            
+          <RideMap isOpen={isGreedyPopupOpen} onClose={() => setIsGreedyPopupOpen(false)} />
         </div>
     );
 };
