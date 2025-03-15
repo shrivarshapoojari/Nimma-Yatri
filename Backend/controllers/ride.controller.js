@@ -155,7 +155,7 @@
 
 
 
-const RideQueue = {}; // Object to store priority queues for each ride
+const RideQueue = {}; 
  
  const captainModel = require('../models/captain.model');
 
@@ -229,35 +229,38 @@ module.exports.getFare = async (req, res) => {
 
 
 
-module.exports.confirmRide = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+// module.exports.confirmRide = async (req, res) => {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//         return res.status(400).json({ errors: errors.array() });
+//     }
 
-    const { rideId } = req.body;
-        const rideDetails= await rideModel.findOne({ _id: rideId})
-         const pickupCoordinates = await mapService.getAddressCoordinate(rideDetails.pickup);
-    try {
-        const ride = await rideService.confirmRide({ rideId, captain: req.captain });
+//     const { rideId } = req.body;
+//         const rideDetails= await rideModel.findOne({ _id: rideId})
+//          const pickupCoordinates = await mapService.getAddressCoordinate(rideDetails.pickup);
+//     try {
+//         Object.keys(RideQueue).forEach((queueRideId) => {
+//             RideQueue[queueRideId] = RideQueue[queueRideId].filter(entry => entry.captainId.toString() !== captain._id.toString());
+//         });
+//         const ride = await rideService.confirmRide({ rideId, captain: req.captain });
 
-        sendMessageToSocketId(ride.user.socketId, {
-            event: 'ride-confirmed',
-            data: ride
-        });
+//         sendMessageToSocketId(ride.user.socketId, {
+//             event: 'ride-confirmed',
+//             data: ride
+//         });
       
-        const captain =  req.captain;
+//         const captain =  req.captain;
 
-      const activeCaptains=  await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 2);
+//       const activeCaptains=  await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 2);
 
-        activeCaptains.forEach(capt => {
-            if (capt._id.toString() !== captain._id.toString()) {
-                sendMessageToSocketId(capt.socketId, {
-                    event: 'ride-taken',
-                    data: { rideId: ride._id, message: 'Another captain has taken this ride.' }
-                });
-            }
-        });
+//         activeCaptains.forEach(capt => {
+//             if (capt._id.toString() !== captain._id.toString()) {
+//                 sendMessageToSocketId(capt.socketId, {
+//                     event: 'ride-taken',
+//                     data: { rideId: ride._id, message: 'Another captain has taken this ride.' }
+//                 });
+//             }
+//         });
 
 
 
@@ -266,12 +269,12 @@ module.exports.confirmRide = async (req, res) => {
 
 
         
-        return res.status(200).json(ride);
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: err.message });
-    }
-};
+//         return res.status(200).json(ride);
+//     } catch (err) {
+//         console.log(err);
+//         return res.status(500).json({ message: err.message });
+//     }
+// };
 
 
 
@@ -290,6 +293,95 @@ module.exports.confirmRide = async (req, res) => {
 
 
  
+// module.exports.waitForRide = async (req, res) => {
+//     try {
+//         const { rideId, captainId } = req.body;
+
+//         // Validate ride and captain
+//         const ride = await rideModel.findById(rideId);
+//         const captain = await captainModel.findById(captainId);
+
+//         if (!ride) return res.status(404).json({ message: 'Ride not found' });
+//         if (!captain) return res.status(404).json({ message: 'Captain not found' });
+
+//         // Initialize queue for this ride if it doesn't exist
+//         if (!RideQueue[rideId]) {
+//             RideQueue[rideId] = [];
+//         }
+
+//         // Add captain to the queue with timestamp
+//         RideQueue[rideId].push({ captainId, timestamp: Date.now() });
+
+//         res.status(200).json({ message: 'Captain added to waiting queue', queuePosition: RideQueue[rideId].length });
+
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
+
+
+
+// module.exports.cancelRide = async (req, res) => {
+//     const errors = validationResult(req);
+//     console.log("in cancel ride")
+//     console.log(req.body)
+//     if (!errors.isEmpty()) {
+//         return res.status(400).json({ errors: errors.array() });
+//     }
+
+//     const { rideId } = req.body;
+
+//     console.log("rideId",rideId)
+//     console.log("req.captain",req.captain)
+      
+//     try {
+        
+//         const ride=await rideModel.findOne({ _id: rideId });
+        
+ 
+       
+
+        
+//         if (RideQueue[rideId] && RideQueue[rideId].length > 0) {
+//             const nextCaptain = RideQueue[rideId].shift(); // Get the first captain in queue
+
+//             // Assign the ride to the new captain
+//             ride.captain = nextCaptain.captainId;
+//             const newCaptain=await captainModel.findById(nextCaptain.captainId)
+//             await ride.save();
+
+           
+//             sendMessageToSocketId(newCaptain.socketId, {
+//                 event: 'que',
+//                 data: ride
+//             });
+//             console.log("new driver assigned")
+//         }
+//         else
+//         {
+//             sendMessageToSocketId(ride.user.socketId, {
+//                 event: 'ride-cancelled',
+//                 data: ride
+//             });
+
+//         }
+
+//         return res.status(200).json(ride);
+//     } catch (err) {
+//         console.log(err);
+//         return res.status(500).json({ message: err.message });
+//     }
+// };
+
+
+
+////////////////////////////////////////////////////
+
+const { MinPriorityQueue } = require('@datastructures-js/priority-queue');
+
+  // Stores priority queues for each ride
+
 module.exports.waitForRide = async (req, res) => {
     try {
         const { rideId, captainId } = req.body;
@@ -301,21 +393,111 @@ module.exports.waitForRide = async (req, res) => {
         if (!ride) return res.status(404).json({ message: 'Ride not found' });
         if (!captain) return res.status(404).json({ message: 'Captain not found' });
 
-        // Initialize queue for this ride if it doesn't exist
+        // Initialize a priority queue for this ride if it doesn't exist
         if (!RideQueue[rideId]) {
-            RideQueue[rideId] = [];
+            RideQueue[rideId] = new MinPriorityQueue((entry) => entry.timestamp);
         }
 
-        // Add captain to the queue with timestamp
-        RideQueue[rideId].push({ captainId, timestamp: Date.now() });
+        // Add captain to the priority queue (automatically sorted by timestamp)
+        RideQueue[rideId].enqueue({ captainId, timestamp: Date.now() });
 
-        res.status(200).json({ message: 'Captain added to waiting queue', queuePosition: RideQueue[rideId].length });
+        res.status(200).json({ message: 'Captain added to waiting queue', queueSize: RideQueue[rideId].size() });
 
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+module.exports.cancelRide = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { rideId } = req.body;
+    
+    try {
+        const ride = await rideModel.findOne({ _id: rideId });
+
+        if (RideQueue[rideId] && !RideQueue[rideId].isEmpty()) {
+            // Pick the captain with the highest priority (earliest timestamp)
+            const nextCaptain = RideQueue[rideId].dequeue();
+            ride.captain = nextCaptain.captainId;
+            await ride.save();
+
+            const newCaptain = await captainModel.findById(nextCaptain.captainId);
+            sendMessageToSocketId(newCaptain.socketId, {
+                event: 'que',
+                data: ride
+            });
+            console.log("New captain assigned from queue");
+        } else {
+            // Notify user that no captain is available
+            sendMessageToSocketId(ride.user.socketId, {
+                event: 'ride-cancelled',
+                data: ride
+            });
+        }
+
+        return res.status(200).json(ride);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: err.message });
+    }
+};
+
+module.exports.confirmRide = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { rideId } = req.body;
+    try {
+        const captain = req.captain;
+        const rideDetails= await rideModel.findOne({ _id: rideId})
+                 const pickupCoordinates = await mapService.getAddressCoordinate(rideDetails.pickup);
+        // Remove captain from all queues
+        Object.keys(RideQueue).forEach(queueRideId => {
+            const tempQueue = new MinPriorityQueue((entry) => entry.timestamp);
+            while (!RideQueue[queueRideId].isEmpty()) {
+                const entry = RideQueue[queueRideId].dequeue();
+                if (entry.captainId.toString() !== captain._id.toString()) {
+                    tempQueue.enqueue(entry);
+                }
+            }
+            RideQueue[queueRideId] = tempQueue;
+        });
+
+        const ride = await rideService.confirmRide({ rideId, captain });
+
+        sendMessageToSocketId(ride.user.socketId, {
+            event: 'ride-confirmed',
+            data: ride
+        });
+        
+      const activeCaptains=  await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 2);
+
+        activeCaptains.forEach(capt => {
+            if (capt._id.toString() !== captain._id.toString()) {
+                sendMessageToSocketId(capt.socketId, {
+                    event: 'ride-taken',
+                    data: { rideId: ride._id, message: 'Another captain has taken this ride.' }
+                });
+            }
+        });
+
+        return res.status(200).json(ride);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: err.message });
+    }
+};
+
+
+
+
 
 module.exports.startRide = async (req, res) => {
     const errors = validationResult(req);
@@ -385,56 +567,3 @@ module.exports.endRide = async (req, res) => {
 //     }
 // }
 
-
-
-module.exports.cancelRide = async (req, res) => {
-    const errors = validationResult(req);
-    console.log("in cancel ride")
-    console.log(req.body)
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { rideId } = req.body;
-
-    console.log("rideId",rideId)
-    console.log("req.captain",req.captain)
-      
-    try {
-        
-        const ride=await rideModel.findOne({ _id: rideId });
-        
- 
-       
-
-        // Check if there are captains waiting for this ride
-        if (RideQueue[rideId] && RideQueue[rideId].length > 0) {
-            const nextCaptain = RideQueue[rideId].shift(); // Get the first captain in queue
-
-            // Assign the ride to the new captain
-            ride.captain = nextCaptain.captainId;
-            const newCaptain=await captainModel.findById(nextCaptain.captainId)
-            await ride.save();
-
-           
-            sendMessageToSocketId(newCaptain.socketId, {
-                event: 'que',
-                data: ride
-            });
-            console.log("new driver assigned")
-        }
-        else
-        {
-            sendMessageToSocketId(ride.user.socketId, {
-                event: 'ride-cancelled',
-                data: ride
-            });
-
-        }
-
-        return res.status(200).json(ride);
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: err.message });
-    }
-};
