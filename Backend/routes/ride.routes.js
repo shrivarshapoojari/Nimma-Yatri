@@ -39,6 +39,8 @@ router.post('/end-ride',
     rideController.endRide
 )
 
+router.get('/getrides', rideController.getAllRides);
+
 
 router.post("/wait",authMiddleware.authCaptain,rideController.waitForRide)
 

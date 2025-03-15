@@ -9,7 +9,13 @@ import { useEffect, useContext } from 'react'
 import { SocketContext } from '../context/SocketContext'
 import { CaptainDataContext } from '../context/CapatainContext'
 import axios from 'axios'
-
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+const containerStyle = {
+    width: "100%",
+    height: "500px",
+  };
+  
+const defaultCenter = { lat: 12.9716, lng: 77.5946 };
 const CaptainHome = () => {
 
     const [ ridePopupPanel, setRidePopupPanel ] = useState(false)
@@ -18,10 +24,11 @@ const CaptainHome = () => {
     const ridePopupPanelRef = useRef(null)
     const confirmRidePopupPanelRef = useRef(null)
     const [ ride, setRide ] = useState(null)
-
+    const [location, setLocation] = useState(defaultCenter);
+    const mapRef = useRef(null);
     const { socket } = useContext(SocketContext)
     const { captain } = useContext(CaptainDataContext)
-
+    const key = import.meta.env.VITE_GOOGLE_MAPS_API
     useEffect(() => {
         socket.emit('join', {
             userId: captain._id,
@@ -118,10 +125,25 @@ const CaptainHome = () => {
                     <i className="text-lg font-medium ri-logout-box-r-line"></i>
                 </Link>
             </div>
-            <div className='h-3/5'>
-                <img className='h-full w-full object-cover' src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif" alt="" />
-
-            </div>
+            <div className="h-3/5">
+             
+        <LoadScript googleMapsApiKey = {key}>
+          <GoogleMap
+            mapContainerStyle={containerStyle}
+            center={location}
+            zoom={15}
+            onLoad={(map) => (mapRef.current = map)}
+            options={{
+              zoomControl: true,
+              fullscreenControl: true,
+              streetViewControl: false,
+              mapTypeControl: false,
+        }}
+          >
+            <Marker position={location} />
+          </GoogleMap>
+        </LoadScript>
+      </div>
             <div className='h-2/5 p-6'>
                 <CaptainDetails />
             </div>
