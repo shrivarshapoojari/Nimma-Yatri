@@ -8,7 +8,7 @@ const GreedyPopup = ({ isOpen, onClose }) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (!isOpen) return; // Prevent API call if popup is closed
+       
 
         const fetchData = async () => {
             try {

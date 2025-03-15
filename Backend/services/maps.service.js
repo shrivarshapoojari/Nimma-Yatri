@@ -6,6 +6,7 @@ module.exports.getAddressCoordinate = async (address) => {
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
 
     try {
+        console.log("Recieved address:", address);
         const response = await axios.get(url);
         if (response.data.status === 'OK') {
             const location = response.data.results[ 0 ].geometry.location;
@@ -13,13 +14,11 @@ module.exports.getAddressCoordinate = async (address) => {
                 ltd: location.lat,
                 lng: location.lng
             };
-        } else {
-           
-            
-            throw new Error('Unable to fetch coordinates');
-        }
+        }  
+        
+        console.log("Response:", response.data);
     } catch (error) {
-        console.error(error);
+        console.log(error);
         throw error;
     }
 }
