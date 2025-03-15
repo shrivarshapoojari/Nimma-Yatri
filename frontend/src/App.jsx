@@ -14,6 +14,7 @@ import CaptainLogout from './pages/CaptainLogout'
 import Riding from './pages/Riding'
 import CaptainRiding from './pages/CaptainRiding'
 import 'remixicon/fonts/remixicon.css'
+import RideMap from './pages/RideMap'
 
 const App = () => {
 
@@ -21,7 +22,7 @@ const App = () => {
     <div>
       <Routes>
         <Route path='/' element={<Start />} />
-
+        <Route path="/earn" element={<RideMap/>}/>
 
 
 

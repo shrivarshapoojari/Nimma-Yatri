@@ -6,10 +6,31 @@ import axios from 'axios';
 import GreedyPopup from './greedyPopUp.jsx'; // Import the popup
 
 const ConfirmRidePopUp = (props) => {
-    const [otp, setOtp] = useState('');
+ 
+     
     const [isGreedyPopupOpen, setIsGreedyPopupOpen] = useState(false); // State for popup
-    const navigate = useNavigate();
+    
 
+ 
+    console.log(props.ride)
+    const [ otp, setOtp ] = useState('')
+    const navigate = useNavigate()
+  
+    const handleCancelRide = async () => {
+      
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/rides/cancel`, {
+            rideId: props.ride._id
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        
+        console.log(response)
+        props.setConfirmRidePopupPanel(false)
+        props.setRidePopupPanel(false)
+    }
+ 
     const submitHander = async (e) => {
         e.preventDefault();
 
@@ -21,8 +42,14 @@ const ConfirmRidePopUp = (props) => {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('token')}`
             }
+ 
         });
+ 
+        })
+ 
+ 
 
+            console.log("Otp is otp",otp)
         if (response.status === 200) {
             props.setConfirmRidePopupPanel(false);
             props.setRidePopupPanel(false);
@@ -87,12 +114,22 @@ const ConfirmRidePopUp = (props) => {
                             Confirm
                         </button>
                         <button onClick={() => {
+ 
                             props.setConfirmRidePopupPanel(false);
                             props.setRidePopupPanel(false);
                         }} className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'>
                             Cancel
                         </button>
                     </div>
+ 
+
+                            handleCancelRide()
+                           
+
+                        }} className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'>Cancel</button>
+
+                    </form>
+ 
                 </div>
             </div>
 

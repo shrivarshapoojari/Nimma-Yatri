@@ -24,6 +24,7 @@ const CaptainHome = () => {
     const ridePopupPanelRef = useRef(null)
     const confirmRidePopupPanelRef = useRef(null)
     const [ ride, setRide ] = useState(null)
+    const[gain,setGain]=useState(0)
     const [location, setLocation] = useState(defaultCenter);
     const mapRef = useRef(null);
     const { socket } = useContext(SocketContext)
@@ -56,10 +57,24 @@ const CaptainHome = () => {
     }, [])
 
     socket.on('new-ride', (data) => {
-
-        setRide(data)
+           
+        console.log("New ride:", data);
+        console.log("Aura:",data.aura);
+        setRide(data.ride)
+        setGain(data.aura)
         setRidePopupPanel(true)
 
+    })
+
+    socket.on('ride-taken', (data) => {
+        console.log("Another captain took the ride:", data);
+       
+    });
+
+    socket.on('que', (data) => {
+        console.log("Ride assigned to captain:", data);
+        setConfirmRidePopupPanel(true)
+        alert("Ride assigned from queue");
     })
 
     async function confirmRide() {
@@ -109,7 +124,7 @@ const CaptainHome = () => {
     return (
         <div className='h-screen'>
             <div className='fixed p-6 top-0 flex items-center justify-between w-screen'>
-                <img className='w-16' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
+                <img className='w-16' src=" " alt="" />
                 <Link to='/captain-home' className=' h-10 w-10 bg-white flex items-center justify-center rounded-full'>
                     <i className="text-lg font-medium ri-logout-box-r-line"></i>
                 </Link>
@@ -142,6 +157,10 @@ const CaptainHome = () => {
                     setRidePopupPanel={setRidePopupPanel}
                     setConfirmRidePopupPanel={setConfirmRidePopupPanel}
                     confirmRide={confirmRide}
+                    socket={socket}
+                    captain={captain}
+                    gain={gain}
+                    
                 />
             </div>
             <div ref={confirmRidePopupPanelRef} className='fixed w-full h-screen z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
