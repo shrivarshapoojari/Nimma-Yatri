@@ -638,6 +638,7 @@ module.exports.startRide = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
+    
 
     const { rideId, otp } = req.query;
 

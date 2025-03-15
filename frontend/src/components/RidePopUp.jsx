@@ -209,13 +209,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import GreedyPopup from './GreedyPopup';
+import { useNavigate } from 'react-router-dom';
 
 const RidePopUp = (props) => {
     const [isGreedyPopupOpen, setIsGreedyPopupOpen] = useState(false); 
     const [isWaiting, setIsWaiting] = useState(false);
     const [addedtoQueue, setAddedtoQueue] = useState(false);
     const [animatedAura, setAnimatedAura] = useState(props.gain);
-
+const navigate=useNavigate();
     useEffect(() => {
         // Smooth animation effect for aura points
         let interval = setInterval(() => {
@@ -304,7 +305,7 @@ const RidePopUp = (props) => {
             <div className='mt-5 w-full'>
                 {/* Expect Gain Button */}
                 <button 
-                    onClick={() => setIsGreedyPopupOpen(true)}
+                    onClick={()=>navigate("/earn")}
                     className="mt-3 ml-auto mb-5 text-lg flex justify-center bg-blue-600 text-white font-semibold p-3 rounded-lg w-fit relative"
                 >
                     Expect Gain
