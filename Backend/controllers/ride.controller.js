@@ -395,11 +395,10 @@ module.exports.waitForRide = async (req, res) => {
 
         // Initialize a priority queue for this ride if it doesn't exist
         if (!RideQueue[rideId]) {
-            RideQueue[rideId] = new MinPriorityQueue((entry) => entry.timestamp);
+            RideQueue[rideId] = new MinPriorityQueue((a, b) => b.aura - a.aura); // Higher aura = Higher priority
         }
-
         // Add captain to the priority queue (automatically sorted by timestamp)
-        RideQueue[rideId].enqueue({ captainId, timestamp: Date.now() });
+        RideQueue[rideId].enqueue({ captainId, aura: captain.aura });
 
         res.status(200).json({ message: 'Captain added to waiting queue', queueSize: RideQueue[rideId].size() });
 

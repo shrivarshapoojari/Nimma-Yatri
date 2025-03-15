@@ -35,6 +35,11 @@ const captainSchema = new mongoose.Schema({
         enum: [ 'active', 'inactive' ],
         default: 'inactive',
     },
+    aura:{
+        type: Number,
+        required:false,
+        default: 0,
+    },
 
     vehicle: {
         color: {
