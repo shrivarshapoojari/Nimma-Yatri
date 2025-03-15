@@ -56,7 +56,7 @@ const handleWait=async()=>{
 
             <div className="absolute top-5 right-5 flex flex-col items-center">
                 <div className="relative w-16 h-16 bg-yellow-500 text-white font-bold text-lg flex items-center justify-center rounded-full shadow-lg border-4 border-yellow-300 animate-pulse">
-                    {animatedAura.toFixed(2)}
+                    {props.gain}
                     <div className="absolute inset-0 animate-spin-slow">
                         🪙 {/* Coin emoji to simulate a spinning effect */}
                     </div>
