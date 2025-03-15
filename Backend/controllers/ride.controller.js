@@ -164,7 +164,7 @@ const { validationResult } = require('express-validator');
 const mapService = require('../services/maps.service');
 const { sendMessageToSocketId } = require('../socket');
 const rideModel = require('../models/ride.model');
-
+const axios = require('axios');
 const rides=[];
 module.exports.createRide = async (req, res) => {
     const errors = validationResult(req);
@@ -198,22 +198,67 @@ module.exports.createRide = async (req, res) => {
 
 
 
+
+
+
+        const distanceTimeForRide = await mapService.getDistanceTime(pickup, destination);
+        const rideDistance = distanceTimeForRide.distance;
+        const rideDuration = parseInt(distanceTimeForRide.duration);
+
+
+        const predictionData = {
+            "Distance (km)": rideDistance/1000,
+            "Fare (INR)": ride.fare,
+            "Time Duration (minutes)": rideDuration/60,
+            "Day of the Week": "Tuesday",
+            "Destination Booking Density": "Medium"
+        };
+        
+        
+      
+ 
+         
+        const mlResponse = await axios.post("http://127.0.0.1:5000/predict", predictionData);
+        console.log("mlResponse")
+        console.log(mlResponse.data)
+        const difficultyScore = mlResponse.data.predicted_difficulty_score;
+        console.log("Difficulty score:", difficultyScore);
+        
+        if(!difficultyScore) {
+            difficultyScore = 0;
+        }
+        let normalizedScore = ((difficultyScore - 5) / (10 - 5)) * 10;
+        console.log("Normalized score",normalizedScore)
+
+        normalizedScore  = parseFloat(normalizedScore.toFixed(2));
+      
+
+
+
+
         const highAuraCaptains = captainsInRadius.filter(captain => captain.aura >= 50); // Adjust threshold as needed
         const lowAuraCaptains = captainsInRadius.filter(captain => captain.aura < 50);
 
         highAuraCaptains.forEach(captain => {
             sendMessageToSocketId(captain.socketId, {
                 event: 'new-ride',
-                data: rideWithUser
+                data: {
+                    ride: rideWithUser,
+                    aura: normalizedScore 
+                }
             });
         });
 
+      
         // Delay sending ride request to low aura captains by 5 seconds
         setTimeout(() => {
             lowAuraCaptains.forEach(captain => {
                 sendMessageToSocketId(captain.socketId, {
                     event: 'new-ride',
-                    data: rideWithUser
+                    data: {
+                        ride: rideWithUser,
+                        aura: normalizedScore 
+                    }
                 });
             });
         }, 10000);
@@ -374,25 +419,8 @@ module.exports.getFare = async (req, res) => {
 //         console.log(err);
 //         return res.status(500).json({ message: err.message });
 //     }
-// };
+//
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
 // module.exports.waitForRide = async (req, res) => {
 //     try {
 //         const { rideId, captainId } = req.body;
@@ -604,24 +632,77 @@ module.exports.confirmRide = async (req, res) => {
 
 
 
+
 module.exports.startRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { rideId, otp } = req.body;
+    const { rideId, otp } = req.query;
 
     try {
         const ride = await rideService.startRide({ rideId, otp, captain: req.captain });
 
+
+        const pickup=ride?.pickup;
+        const destination=ride?.destination;
+         const distanceTimeForRide = await mapService.getDistanceTime(pickup, destination);
+            const rideDistance = distanceTimeForRide.distance;
+            const rideDuration = parseInt(distanceTimeForRide.duration);
         sendMessageToSocketId(ride.user.socketId, {
             event: 'ride-started',
             data: ride
         });
 
+
+
+
+ 
+console.log("rideDistance",rideDistance/1000)
+console.log("rideDuration",rideDuration/60)
+
+
+        const predictionData = {
+            "Distance (km)": rideDistance/1000,
+            "Fare (INR)": ride.fare,
+            "Time Duration (minutes)": rideDuration/60,
+            "Day of the Week": "Tuesday",
+            "Destination Booking Density": "Medium"
+        };
+
+ 
+        
+        // Call ML model API
+        const mlResponse = await axios.post("http://127.0.0.1:5000/predict", predictionData);
+        console.log("mlResponse")
+        console.log(mlResponse.data)
+        const difficultyScore = mlResponse.data.predicted_difficulty_score;
+        console.log("Difficulty score:", difficultyScore);
+        // Adjust aura based on difficulty score
+        if(!difficultyScore) {
+            difficultyScore = 0;
+        }
+        let normalizedScore = ((difficultyScore - 5) / (10 - 5)) * 10;
+        console.log("Normalized score",normalizedScore)
+        console.log("Aura Before",req.captain.aura)
+         // You can modify the factor
+        req.captain.aura += normalizedScore;
+
+        // Save the updated captain
+        await req.captain.save();
+
+
+           
+
+
+
+
+
+
         return res.status(200).json(ride);
     } catch (err) {
+        console.log(err)
         return res.status(500).json({ message: err.message });
     }
 };

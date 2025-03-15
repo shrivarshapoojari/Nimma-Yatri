@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
 const ConfirmRidePopUp = (props) => {
+    console.log(props.ride)
     const [ otp, setOtp ] = useState('')
     const navigate = useNavigate()
   
@@ -33,7 +34,9 @@ const ConfirmRidePopUp = (props) => {
                 Authorization: `Bearer ${localStorage.getItem('token')}`
             }
         })
+ 
 
+            console.log("Otp is otp",otp)
         if (response.status === 200) {
             props.setConfirmRidePopupPanel(false)
             props.setRidePopupPanel(false)

@@ -24,6 +24,7 @@ const CaptainHome = () => {
     const ridePopupPanelRef = useRef(null)
     const confirmRidePopupPanelRef = useRef(null)
     const [ ride, setRide ] = useState(null)
+    const[gain,setGain]=useState(0)
     const [location, setLocation] = useState(defaultCenter);
     const mapRef = useRef(null);
     const { socket } = useContext(SocketContext)
@@ -56,8 +57,11 @@ const CaptainHome = () => {
     }, [])
 
     socket.on('new-ride', (data) => {
-
-        setRide(data)
+           
+        console.log("New ride:", data);
+        console.log("Aura:",data.aura);
+        setRide(data.ride)
+        setGain(data.aura)
         setRidePopupPanel(true)
 
     })
@@ -155,6 +159,7 @@ const CaptainHome = () => {
                     confirmRide={confirmRide}
                     socket={socket}
                     captain={captain}
+                    gain={gain}
                     
                 />
             </div>
