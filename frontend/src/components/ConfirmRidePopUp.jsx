@@ -1,9 +1,17 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import GreedyPopup from './greedyPopUp.jsx'; // Import the popup
 
 const ConfirmRidePopUp = (props) => {
+ 
+     
+    const [isGreedyPopupOpen, setIsGreedyPopupOpen] = useState(false); // State for popup
+    
+
+ 
     console.log(props.ride)
     const [ otp, setOtp ] = useState('')
     const navigate = useNavigate()
@@ -22,8 +30,9 @@ const ConfirmRidePopUp = (props) => {
         props.setConfirmRidePopupPanel(false)
         props.setRidePopupPanel(false)
     }
+ 
     const submitHander = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/rides/start-ride`, {
             params: {
@@ -33,23 +42,28 @@ const ConfirmRidePopUp = (props) => {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('token')}`
             }
+ 
+        });
+ 
         })
+ 
  
 
             console.log("Otp is otp",otp)
         if (response.status === 200) {
-            props.setConfirmRidePopupPanel(false)
-            props.setRidePopupPanel(false)
-            navigate('/captain-riding', { state: { ride: props.ride } })
+            props.setConfirmRidePopupPanel(false);
+            props.setRidePopupPanel(false);
+            navigate('/captain-riding', { state: { ride: props.ride } });
         }
+    };
 
-
-    }
     return (
         <div>
             <h5 className='p-1 text-center w-[93%] absolute top-0' onClick={() => {
-                props.setRidePopupPanel(false)
-            }}><i className="text-3xl text-gray-200 ri-arrow-down-wide-line"></i></h5>
+                props.setRidePopupPanel(false);
+            }}>
+                <i className="text-3xl text-gray-200 ri-arrow-down-wide-line"></i>
+            </h5>
             <h3 className='text-2xl font-semibold mb-5'>Confirm this ride to Start</h3>
             <div className='flex items-center justify-between p-3 border-2 border-yellow-400 rounded-lg mt-4'>
                 <div className='flex items-center gap-3 '>
@@ -84,11 +98,30 @@ const ConfirmRidePopUp = (props) => {
                 </div>
 
                 <div className='mt-6 w-full'>
-                    <form onSubmit={submitHander}>
+                    <div>
                         <input value={otp} onChange={(e) => setOtp(e.target.value)} type="text" className='bg-[#eee] px-6 py-4 font-mono text-lg rounded-lg w-full mt-3' placeholder='Enter OTP' />
-
-                        <button className='w-full mt-5 text-lg flex justify-center bg-green-600 text-white font-semibold p-3 rounded-lg'>Confirm</button>
+                        <div></div>
+                        {/* <button 
+                            className='ml-auto mt-5 text-lg flex justify-center bg-green-600 text-white font-semibold p-3 rounded-lg w-fit'
+                            onClick={() => setIsGreedyPopupOpen(true)} // Open the popup
+                        >
+                            Expect Gain
+                        </button> */}
+                        <button 
+                            className='w-full mt-5 text-lg flex justify-center bg-green-600 text-white font-semibold p-3 rounded-lg'
+                            onClick={(e) => submitHander(e)}
+                        >
+                            Confirm
+                        </button>
                         <button onClick={() => {
+ 
+                            props.setConfirmRidePopupPanel(false);
+                            props.setRidePopupPanel(false);
+                        }} className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'>
+                            Cancel
+                        </button>
+                    </div>
+ 
 
                             handleCancelRide()
                            
@@ -96,10 +129,14 @@ const ConfirmRidePopUp = (props) => {
                         }} className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'>Cancel</button>
 
                     </form>
+ 
                 </div>
             </div>
+
+            {/* Render GreedyPopup when isGreedyPopupOpen is true */}
+            {/* <GreedyPopup isOpen={isGreedyPopupOpen} onClose={() => setIsGreedyPopupOpen(false)} /> */}
         </div>
-    )
+    );
 }
 
-export default ConfirmRidePopUp
+export default ConfirmRidePopUp;
