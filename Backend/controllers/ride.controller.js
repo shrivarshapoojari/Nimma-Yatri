@@ -165,7 +165,7 @@ const mapService = require('../services/maps.service');
 const { sendMessageToSocketId } = require('../socket');
 const rideModel = require('../models/ride.model');
 
-
+const rides=[];
 module.exports.createRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -188,12 +188,36 @@ module.exports.createRide = async (req, res) => {
 
         const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
 
-        captainsInRadius.forEach(captain => {
+        // captainsInRadius.forEach(captain => {
+        //     sendMessageToSocketId(captain.socketId, {
+        //         event: 'new-ride',
+        //         data: rideWithUser
+        //     });
+        // });
+
+
+
+
+        const highAuraCaptains = captainsInRadius.filter(captain => captain.aura >= 50); // Adjust threshold as needed
+        const lowAuraCaptains = captainsInRadius.filter(captain => captain.aura < 50);
+
+        highAuraCaptains.forEach(captain => {
             sendMessageToSocketId(captain.socketId, {
                 event: 'new-ride',
                 data: rideWithUser
             });
         });
+
+        // Delay sending ride request to low aura captains by 5 seconds
+        setTimeout(() => {
+            lowAuraCaptains.forEach(captain => {
+                sendMessageToSocketId(captain.socketId, {
+                    event: 'new-ride',
+                    data: rideWithUser
+                });
+            });
+        }, 10000);
+
 
     } catch (err) {
         console.log(err);
@@ -494,7 +518,13 @@ module.exports.cancelRide = async (req, res) => {
     
     try {
         const ride = await rideModel.findOne({ _id: rideId });
-
+           const cancelledCaptain= await captainModel.findById(ride.captain);
+           console.log("cancelledCaptain",cancelledCaptain)
+           if (cancelledCaptain) {
+            cancelledCaptain.aura -= 10; // Reduce aura by 10
+            await cancelledCaptain.save(); // Save updated aura
+            console.log("Updated aura:", cancelledCaptain.aura);
+        }
         if (RideQueue[rideId] && !RideQueue[rideId].isEmpty()) {
             // Pick the captain with the highest priority (earliest timestamp)
             const nextCaptain = RideQueue[rideId].dequeue();
